@@ -10,7 +10,7 @@ testDataOffset = 16
 testLablePath = "D:\\lgs\\MySoftware\\python\\bpNN\\trainingdata\\t10k-labels.idx1-ubyte"
 testLableOffset = 8
 
-step = 0.1  #学习率
+step = 0.01  #学习率
 
 #读取数据
 imageFile = open(trainDataPath, "rb")
@@ -23,9 +23,9 @@ testImageFile = open(testDataPath, "rb")
 testImageFile.seek(testDataOffset)
 testLableFile = open(testLablePath, "rb")
 testLableFile.seek(testLableOffset)
-testData = [[np.frombuffer(testImageFile.read(784), np.uint8).reshape((1, 784)) / 255, testLableFile.read(1)[0]] for x in range(10000)]
+testDatas = [[np.frombuffer(testImageFile.read(784), np.uint8).reshape((1, 784)) / 255, testLableFile.read(1)[0]] for x in range(10000)]
 
-k1, k2 = np.ones((785, 32)), np.ones((33, 10))  #初始化参数列表
+k1, k2 = np.random.randint(0, 100, (785, 32)) / 100, np.random.randint(0, 100, (33, 10)) / 100  #初始化参数列表
 
 def sigmoid(m):
     return 1 / (1 + np.exp(-m))
@@ -54,22 +54,37 @@ def training(dataList):
     
     dk1 /= len(dataList)
     dk2 /= len(dataList)
-    k1 -= step * dk1
-    k2 -= step * dk2
+    #k1 -= step * dk1
+    #k2 -= step * dk2
+    k1 += step * dk1
+    k2 += step * dk2
 
 
 def loss(out, n):
     return 0.5 * np.sum(np.square(out - wantedArray(n)))
 
-'''
 def getAns(m):
     L1 = np.append(m, [1]).reshape((1, 785))  #加入偏置
     L2 = np.append(sigmoid(L1 @ k1), [1]).reshape((1, 33))  #加入偏置
     L3 = sigmoid(L2 @ k2)
-'''
+    ans = 0
+    _max = L3[0][0]
+    for i in range(1, 10):
+        if L3[0][i] > _max:
+            _max = L3[0][i]
+            ans = i
+    return ans
+
+
 
 for i in range(1):
     random.shuffle(Datas)
-    for j in range(600):
-        training(Datas[j * 100 : (j + 1) * 100])
-    
+    for j in range(1200):
+        training(Datas[j * 50 : (j + 1) * 50])
+
+counter = 0
+for data in testDatas:
+    if getAns(data[0]) == data[1]:
+        counter += 1
+
+print(counter / 10000.0)
