@@ -5,10 +5,6 @@ trainDataPath = "D:\\lgs\\MySoftware\\python\\bpNN\\trainingdata\\train-images.i
 trainDataOffset = 16
 trainLablePath = "D:\\lgs\\MySoftware\\python\\bpNN\\trainingdata\\train-labels.idx1-ubyte"
 trainLableOffset = 8
-testDataPath = "D:\\lgs\\MySoftware\\python\\bpNN\\trainingdata\\t10k-images.idx3-ubyte"
-testDataOffset = 16
-testLablePath = "D:\\lgs\\MySoftware\\python\\bpNN\\trainingdata\\t10k-labels.idx1-ubyte"
-testLableOffset = 8
 
 step = 0.02  #学习率
 
@@ -18,12 +14,6 @@ imageFile.seek(trainDataOffset)
 lableFile = open(trainLablePath, "rb")
 lableFile.seek(trainLableOffset)
 Datas = [[np.frombuffer(imageFile.read(784), np.uint8).reshape((1, 784)) / 255, lableFile.read(1)[0]] for x in range(60000)]
-
-testImageFile = open(testDataPath, "rb")
-testImageFile.seek(testDataOffset)
-testLableFile = open(testLablePath, "rb")
-testLableFile.seek(testLableOffset)
-testDatas = [[np.frombuffer(testImageFile.read(784), np.uint8).reshape((1, 784)) / 255, testLableFile.read(1)[0]] for x in range(10000)]
 
 k1, k2 = np.random.randint(0, 100, (784, 32)) / 100, np.random.randint(0, 100, (32, 10)) / 100  #初始化参数列表
 b1, b2 = np.random.randint(0, 100, (1, 32)) / 100, np.random.randint(0, 100, (1, 10)) / 100
@@ -87,32 +77,8 @@ def trainingOneData(data):
     b1 += step * db1
     b2 += step * db2
 
-    
-
-
-def loss(out, n):
-    return 0.5 * np.sum(np.square(out - wantedArray(n)))
-
-def getAns(m):
-    L1 = m
-    L2 = sigmoid(L1 @ k1 + b1)
-    L3 = sigmoid(L2 @ k2 + b2)
-    ans = 0
-    _max = L3[0][0]
-    for i in range(1, 10):
-        if L3[0][i] > _max:
-            _max = L3[0][i]
-            ans = i
-    return ans
-
-
 for i in range(10):
     for data in Datas:
         trainingOneData(data)
 
-counter = 0
-for data in testDatas:
-    if getAns(data[0]) == data[1]:
-        counter += 1
-
-print(counter / 10000.0)
+np.savez("model.npz", k1, k2, b1, b2)
